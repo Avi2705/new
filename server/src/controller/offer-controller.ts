@@ -1,0 +1,54 @@
+import type { Request, Response } from "express";
+import { createOffer, validateOffer, getVendorOffers, removeOffer } from "../service/offer-service.js";
+
+export async function createOfferController(req: Request, res: Response) {
+    try {
+        const vendorId = req.user!.id;
+        const offer = await createOffer(vendorId, req.body);
+        return res.status(201).json({ message: "Offer created successfully", offer });
+    } catch (err: any) {
+        return res.status(err.statusCode || 500).json({ message: err.message || "Internal server error" });
+    }
+}
+
+export async function validateOfferController(req: Request, res: Response) {
+    try {
+        const { code } = req.params;
+        const offerCode = Array.isArray(code) ? code[0] : code;
+        const offer = await validateOffer(offerCode!);
+        return res.status(200).json({ valid: true, offer });
+    } catch (err: any) {
+        return res.status(err.statusCode || 500).json({ message: err.message || "Internal server error" });
+    }
+}
+
+export async function getVendorOffersController(req: Request, res: Response) {
+    try {
+        const vendorId = req.user!.id;
+        const offers = await getVendorOffers(vendorId);
+        return res.status(200).json({ count: offers.length, offers });
+    } catch (err: any) {
+        return res.status(err.statusCode || 500).json({ message: err.message || "Internal server error" });
+    }
+}
+
+export async function deleteOfferController(req: Request, res: Response) {
+    try {
+        const vendorId = req.user!.id;
+        const { offerId } = req.params;
+        const targetOfferId = Array.isArray(offerId) ? offerId[0] : offerId;
+        const result = await removeOffer(vendorId, targetOfferId!);
+        return res.status(200).json(result);
+    } catch (err: any) {
+        return res.status(err.statusCode || 500).json({ message: err.message || "Internal server error" });
+    }
+}
+
+export const offerController = {
+    createOfferController,
+    validateOfferController,
+    getVendorOffersController,
+    deleteOfferController
+};
+
+export default offerController;
